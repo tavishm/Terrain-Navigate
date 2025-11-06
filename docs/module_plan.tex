@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amssymb}
+\title{Module Plan}
+\author{Tavish Mankash}
+\date{}
+\begin{document}
+\maketitle
+\small
+\section*{Overview}
+Short, practical breakdown of the codebase. Each module has a small, clear contract so we can iterate fast.
+
+\section*{Modules}
+\subsection*{1. data}
+Purpose: get terrain into memory.
+\begin{itemize}
+  \item \texttt{load\_synthetic\_terrain(shape)}: quick, deterministic heightmap (for dev/testing).
+  \item \textit{(later)} \texttt{load\_laz(path)}: read LAZ/point cloud and return gridded heightmap.
+  \item Inputs: file path or shape; Outputs: \(H\in\mathbb{R}^{m\times n}\) height grid.
+\end{itemize}
+
+\subsection*{2. preprocess}
+Purpose: convert raw points to a usable grid; light smoothing if needed.
+\begin{itemize}
+  \item \textit{(placeholder)} \texttt{voxelize(points, voxel\_size)}.
+  \item Inputs: point cloud; Outputs: grid/voxels.
+\end{itemize}
+
+\subsection*{3. graph}
+Purpose: neighbors and distances for grid search.
+\begin{itemize}
+  \item \texttt{iter\_neighbors(idx, shape, connectivity)}: valid 4/8-neighbors.
+  \item \texttt{step\_distance(a,b)}: 1 or \(\sqrt{2}\) for diagonals.
+  \item Inputs: grid index; Outputs: neighbor indices and base step cost.
+\end{itemize}
+
+\subsection*{4. cost}
+Purpose: movement cost + heuristic.
+\begin{itemize}
+  \item \texttt{slope\_cost(H,a,b; k,p)}: penalize slope as in the design doc (tan-based penalty).
+  \item \texttt{heuristic\_euclidean(a,b)}: admissible planar distance.
+  \item Inputs: height grid, two cells; Outputs: scalar costs.
+\end{itemize}
+
+\subsection*{5. planner}
+Purpose: path search.
+\begin{itemize}
+  \item \texttt{a\_star(start, goal, neighbors, h, move\_cost)}: generic A*.
+  \item Inputs: start/goal, callbacks; Outputs: path (list of cells), cost.
+\end{itemize}
+
+\subsection*{6. cli}
+Purpose: quick demo and smoke tests.
+\begin{itemize}
+  \item \texttt{python -m terrain\_navigate}: runs a small demo on synthetic terrain.
+  \item Flags: \texttt{--size}, \texttt{--k}, \texttt{--p}.
+\end{itemize}
+
+\section*{Notes}
+Keep functions small and testable. Prefer simple numpy-only ops first; add heavier deps only when needed.
+
+\end{document}

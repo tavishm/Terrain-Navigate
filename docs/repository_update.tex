@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\title{Repository Update}
+\author{Tavish Mankash}
+\date{}
+\begin{document}
+\maketitle
+\small
+\section*{New Structure}
+Minimal but ready to run a demo A* pathfinder.
+
+\begin{verbatim}
+Terrain-Navigate/
+  docs/
+    technical_design.tex (unchanged)
+    module_plan.tex
+    technology_stack.tex
+    repository_update.tex
+  src/
+    terrain_navigate/
+      __init__.py
+      __main__.py         # demo entrypoint
+      data/loader.py
+      utils/voxel.py
+      graph/grid.py
+      cost/costs.py
+      planner/a_star.py
+  README.md
+  requirements.txt
+  .gitignore
+\end{verbatim}
+
+\section*{Rationale}
+Keep the core tight: data \textrightarrow{} cost \textrightarrow{} planner. Demo runs without external data, using a synthetic terrain. Later we can plug LAZ ingest and voxelization without changing the planner.
+
+\section*{Next}
+\begin{itemize}
+  \item Add LAZ reader (\texttt{laspy}/PDAL) and a simple gridding path.
+  \item Optional visualization: save a PNG with the path overlay.
+  \item Small unit tests for neighbors, heuristic admissibility.
+\end{itemize}
+
+\end{document}

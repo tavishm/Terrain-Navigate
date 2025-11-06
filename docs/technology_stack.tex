@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\title{Technology Stack}
+\author{Tavish Mankash}
+\date{}
+\begin{document}
+\maketitle
+\small
+\section*{Core}
+\begin{itemize}
+  \item Python 3.11+ (speed, typing, ecosystem)
+  \item NumPy (arrays, vectorized slope math)
+  \item (Later) PDAL or \texttt{laspy} for LAZ ingest
+  \item (Later) SciPy: KD-tree / interpolation utilities
+\end{itemize}
+
+\section*{Dev + Quality}
+\begin{itemize}
+  \item \texttt{pytest} minimal unit tests
+  \item \texttt{ruff} / \texttt{black} (style; optional early) 
+\end{itemize}
+
+\section*{Visualization (optional early)}
+\begin{itemize}
+  \item Matplotlib: quick 2D plots of height + path
+  \item (Possible) Plotly: interactive 3D surface when needed
+\end{itemize}
+
+\section*{Performance Path}
+Start pure Python/NumPy. If hotspots appear:
+\begin{itemize}
+  \item Numba JIT for inner loops
+  \item PyTorch or JAX only if GPU batch path planning emerges
+\end{itemize}
+
+\section*{Packaging}
+Simple src layout; no heavy framework. One \texttt{__main__} entry for demos.
+
+\section*{Data}
+Local cache directory (e.g. \texttt{data/raw}, \texttt{data/processed}). Avoid bundling big files in git.
+
+\section*{Why This Stack}
+Fast iteration, minimal friction, easy to grow to heavier geo libs later.
+
+\end{document}
