@@ -22,7 +22,6 @@ dist/
 *.fls
 *.log
 *.synctex.gz
-*.pdf
 
 # Data
 /data/
