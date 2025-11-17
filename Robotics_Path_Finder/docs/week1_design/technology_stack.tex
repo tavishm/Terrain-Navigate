@@ -1,0 +1,46 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\title{Technology Stack\\Robotics Path Finder}
+\author{Explorer Track -- Coding Caf\'e}
+\date{November 2025}
+\begin{document}
+\maketitle
+
+\section{Languages \& Runtimes}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Python 3.11}: Primary implementation language for data processing, planning logic, and automation scripts.
+    \item \textbf{Bash}: Lightweight orchestration for dataset management and reproducible environment setup.
+\end{itemize}
+
+\section{Core Libraries}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{PDAL / LasPy}: Reading LAZ/LAS point clouds, applying filters, and exporting raster intermediates.
+    \item \textbf{NumPy \& SciPy}: Array manipulation, neighbourhood filters, and path-cost computations.
+    \item \textbf{Rasterio \& GDAL}: Working with GeoTIFF outputs, projections, and terrain derivatives.
+    \item \textbf{NetworkX}: Reference implementation for graph utilities around A* and future planner variants.
+    \item \textbf{Matplotlib / Plotly}: Quick-look visualisations for elevation grids and planned paths.
+\end{itemize}
+
+\section{Tooling \& Infrastructure}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{JupyterLab}: Exploratory analysis, rapid prototyping, and sharing annotated results.
+    \item \textbf{Poetry or UV} (final choice pending): Manage Python dependencies and lock versions for collaborators.
+    \item \textbf{GitHub}: Source control, issue tracking, and CI hooks (linting, lightweight tests) once codebase stabilises.
+    \item \textbf{Docker (Stretch)}: Optional containerisation for reproducible preprocessing runs when scaling beyond laptops.
+\end{itemize}
+
+\section{Data Sources}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{USGS 3DEP LiDAR}: Primary terrain data; tile metadata informs AOI selection.
+    \item \textbf{OpenStreetMap extracts}: Supplementary layers for roads, water bodies, and obstacles when available.
+\end{itemize}
+
+\section{Environment Management}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Version Control Hygiene}: Feature branches for modules, pull-request reviews within the team, and tagged milestones.
+    \item \textbf{Testing}: PyTest for unit tests around data transforms and planner behaviours once modules materialise.
+    \item \textbf{Continuous Integration}: GitHub Actions workflow (to be configured) for linting and smoke tests.
+\end{itemize}
+
+\end{document}

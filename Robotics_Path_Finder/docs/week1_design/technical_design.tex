@@ -1,0 +1,61 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\title{Technical Design Document\\Robotics Path Finder}
+\author{Explorer Track -- Coding Caf\'e}
+\date{November 2025}
+\begin{document}
+\maketitle
+
+\section{Project Overview}
+The goal is to prototype a path-finding tool that consumes publicly available LiDAR datasets, extracts traversable terrain, and plans feasible routes for a ground robot. The near-term prototype emphasises data handling, environment modelling, and search-based planning while keeping the user-facing interface minimal.
+
+\section{System Architecture}
+The planned solution follows a modular pipeline so that each stage can evolve independently as the project matures.
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Data Acquisition Layer}: Handles discovery and download of candidate LiDAR tiles from the USGS data portal. Interfaces with filesystem/object storage for caching.
+    \item \textbf{Pre-processing Layer}: Normalises raw point clouds, clips regions of interest, and generates raster products (elevation grids, slope maps) suitable for planning.
+    \item \textbf{Environment Representation}: Converts processed rasters into a 2D cost map that encodes traversability constraints, robot footprint limits, and waypoint metadata.
+    \item \textbf{Path Planning Core}: Implements grid-based search (baseline: A*) with hooks for heuristics, tie-breaking, and constraint tuning.
+    \item \textbf{Visualization \\ Reporting}: Provides quick-look plots/notebooks to interpret candidate paths and validate assumptions before committing to field tests.
+\end{enumerate}
+
+\section{Data Flow}
+\begin{enumerate}[label=\textbf{Step \arabic*.}]
+    \item User selects an area of interest; the acquisition layer fetches the corresponding LAS/LAZ tiles and persists them locally.
+    \item The preprocessing layer batches tiles, filters outliers, normalises elevation, and generates raster grids.
+    \item The environment representation module fuses the grids, applies masking rules (water, steep gradients, restricted zones), and emits a planning-ready cost map.
+    \item The planner consumes the cost map, applies robot-specific constraints, and produces a ranked list of candidate paths with metadata (path length, elevation gain).
+    \item Visualization notebooks or lightweight scripts summarise outputs for iteration and validation with mentors.
+\end{enumerate}
+
+\section{Core Algorithms}
+\subsection{Search Strategy}
+A* search on a regular grid is the baseline to guarantee deterministic behaviour and provide a reference point for later algorithmic improvements (e.g., weighted A*, D* Lite, or sampling-based planners). Heuristic design will balance computational cost with terrain fidelity so early tests remain responsive on commodity hardware.
+
+\subsection{Cost Function (Reserved)}
+\textit{Reserved space: detailed derivation and tuning strategy for the cost function will be added after internal review.}
+
+\section{Interfaces \\ Extensibility}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Module Contracts}: Each layer exchanges data through structured files (GeoTIFF rasters, JSON metadata packs) to keep boundaries explicit and testable.
+    \item \textbf{Configuration}: Centralised YAML configuration will describe tile IDs, robot parameters, and planner toggles so experiments remain reproducible.
+    \item \textbf{Future Hooks}: Slots are left for incremental upgrades such as GPU-accelerated raster processing or ROS integration without major refactors.
+\end{itemize}
+
+\section{Learning Objectives}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{New Territory}: Raster-based terrain classification, scalable LiDAR preprocessing pipelines, and custom heuristic design for non-holonomic robots.
+    \item \textbf{Reinforcement}: Applying A* variants, structuring data pipelines, and documenting experiments in a reproducible way.
+    \item \textbf{Comfort Zone}: Python scripting, NumPy/Pandas workflows, and exploratory analysis inside Jupyter notebooks.
+\end{itemize}
+
+\section{Risks \& Mitigations}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Data Volume}: Large LiDAR tiles may exceed local storage. Mitigation: staged downloads, coarse subsampling for early tests.
+    \item \textbf{Terrain Fidelity}: Raster simplifications could hide hazards. Mitigation: integrate gradient checks and manual validation plots.
+    \item \textbf{Time Constraints}: Balancing preprocessing and planner development. Mitigation: prioritise baseline pipeline first, defer optimisations.
+\end{itemize}
+
+\end{document}

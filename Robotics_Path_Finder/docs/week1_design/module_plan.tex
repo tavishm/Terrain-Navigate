@@ -1,0 +1,47 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{array}
+\usepackage{longtable}
+\title{Module Plan\\Robotics Path Finder}
+\author{Explorer Track -- Coding Caf\'e}
+\date{November 2025}
+\begin{document}
+\maketitle
+
+\section{Planning Philosophy}
+The project is divided into focused modules so that parallel work remains possible and integration risk stays low. Each module owns clear inputs, outputs, and validation criteria.
+
+\section{Module Breakdown}
+\setlength{\extrarowheight}{2pt}
+\begin{longtable}{|>{\raggedright}p{2.7cm}|>{\raggedright}p{6.4cm}|>{\raggedright}p{3.0cm}|>{\raggedright\arraybackslash}p{2.2cm}|}
+\hline
+\textbf{Module} & \textbf{Scope} & \textbf{Primary Owner} & \textbf{Status} \\
+\hline
+Area Selection & Curate LiDAR tile IDs, maintain AOI catalogue, store acquisition metadata. & Mudith Daga & Planned \\
+\hline
+Data Acquisition & Automate downloads, checksum verification, and caching of LAS/LAZ files. & Tavish Mankash & Planned \\
+\hline
+Preprocessing Pipeline & Convert point clouds to rasters, generate DEM/DSM layers, and clean noise. & Keshava Prasad & Planned \\
+\hline
+Cost Map Builder & Fuse rasters into traversability grid, encode constraints, expose config knobs. & Prakamya Joshi & Planned \\
+\hline
+Path Planner Core & Implement baseline A* search, path validation checks, and logging. & Tanvir Sandhu & Planned \\
+\hline
+Visual Analytics & Provide notebooks/plots for sanity checks and mentor updates. & Shared & Planned \\
+\hline
+Integration Testing & Define regression tests, sample scenarios, and performance benchmarks. & Shared & Planned \\
+\hline
+Documentation & Maintain design notes, READMEs, and sprint updates. & Shared & Planned \\
+\hline
+\end{longtable}
+
+\section{Milestones}
+\begin{itemize}
+    \item \textbf{Week 2}: Data acquisition scripts operational with two sample tiles processed end-to-end.
+    \item \textbf{Week 3}: Baseline cost map generator producing grids that feed into planning stub.
+    \item \textbf{Week 4}: Path planner returning candidate routes with basic visual validation plots.
+    \item \textbf{Week 5}: Integration tests and stress runs on expanded tile set; iterate on heuristics.
+    \item \textbf{Week 6}: Final polish, documentation, and optional stretch goals (real-time updates, ROS hook).
+\end{itemize}
+
+\end{document}
