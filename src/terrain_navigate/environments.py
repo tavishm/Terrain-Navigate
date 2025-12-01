@@ -43,7 +43,10 @@ class SpatialIndexEnvironment(Environment):
             return np.vstack(candidates)
         return np.empty((0, self.global_map.shape[1]), dtype=self.global_map.dtype)
 
-    def get_nearest_node(self, point: np.ndarray, radius: float) -> np.ndarray:
+    def get_nearest_node(self, point: np.ndarray, radius: Optional[float] = None) -> np.ndarray:
+        point = np.asarray(point, dtype=np.float64)
+        if radius is None:
+            radius = 3.0 * self.cell_size
         if radius <= 0:
             raise ValueError("Radius must be positive.")
 
@@ -119,7 +122,10 @@ class GridEnvironment(Environment):
         candidates = np.stack((x_grid[valid_mask], y_grid[valid_mask], z_values[valid_mask]), axis=-1)
         return candidates.astype(np.float64, copy=False)
 
-    def get_nearest_node(self, point: np.ndarray, radius: float) -> np.ndarray:
+    def get_nearest_node(self, point: np.ndarray, radius: Optional[float] = None) -> np.ndarray:
+        point = np.asarray(point, dtype=np.float64)
+        if radius is None:
+            radius = 3.0 * self.resolution
         if radius <= 0:
             raise ValueError("Radius must be positive.")
             

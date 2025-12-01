@@ -21,13 +21,13 @@ class Environment(ABC):
         pass
 
     @abstractmethod
-    def get_nearest_node(self, point: np.ndarray, radius: float) -> np.ndarray:
+    def get_nearest_node(self, point: np.ndarray, radius: Optional[float] = None) -> np.ndarray:
         """
         Finds the nearest node in the environment to a given point.
         
         Args:
             point: The query point coordinates.
-            radius: The search radius.
+            radius: The search radius. If None, a default radius based on environment scale is used.
             
         Returns:
             The coordinates of the nearest node.
@@ -63,7 +63,7 @@ class PathFinder(ABC):
         goal: np.ndarray, 
         environment: Environment, 
         cost_function: CostFunction,
-        node_radius: float
+        node_radius: Optional[float] = None
     ) -> Tuple[Optional[np.ndarray], float]:
         """
         Finds a path from start to goal.

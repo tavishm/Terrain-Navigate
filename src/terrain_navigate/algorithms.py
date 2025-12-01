@@ -4,6 +4,7 @@ from itertools import count
 from typing import Tuple, Optional, Dict, Set, List
 
 from .base import PathFinder, Environment, CostFunction
+from .environments import GridEnvironment, SpatialIndexEnvironment
 
 class AStar(PathFinder):
     """
@@ -15,11 +16,19 @@ class AStar(PathFinder):
         goal: np.ndarray, 
         environment: Environment, 
         cost_function: CostFunction,
-        node_radius: float
+        node_radius: Optional[float] = None
     ) -> Tuple[Optional[np.ndarray], float]:
         
         start = np.asarray(start, dtype=np.float64)
         goal = np.asarray(goal, dtype=np.float64)
+
+        if node_radius is None:
+            if isinstance(environment, GridEnvironment):
+                node_radius = 3.0 * environment.resolution
+            elif isinstance(environment, SpatialIndexEnvironment):
+                node_radius = 3.0 * environment.cell_size
+            else:
+                node_radius = 1.0
 
         if start.size == 0 or goal.size == 0:
             raise ValueError("Start and goal points cannot be empty.")
