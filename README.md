@@ -23,7 +23,7 @@ See the `examples` directory for usage demonstrations.
 ### Basic Example
 
 ```python
-from src.pathfinder import AStar, GridEnvironment, PowerCost
+from src.terrain_navigate import AStar, GridEnvironment, PowerCost
 
 # Initialize environment and cost function
 env = GridEnvironment(Z=Z, ...)
@@ -36,7 +36,7 @@ path, cost = astar.find_path(start, goal, env, cost_fn, node_radius=1.0)
 
 ## Structure
 
-- `src/pathfinder`: Core package containing the library code.
+- `src/terrain_navigate`: Core package containing the library code.
 - `examples`: Example scripts and notebooks (including MDRS specific examples).
 - `tests`: Unit tests.
 

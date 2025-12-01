@@ -8,9 +8,9 @@ src_path = project_root / "src"
 if str(src_path) not in sys.path:
     sys.path.append(str(src_path))
 
-from pathfinder.algorithms import AStar
-from pathfinder.environments import GridEnvironment
-from pathfinder.costs import PowerCost, EuclideanCost
+from terrain_navigate.algorithms import AStar
+from terrain_navigate.environments import GridEnvironment
+from terrain_navigate.costs import PowerCost, EuclideanCost
 
 def test_grid_environment():
     print("Testing GridEnvironment...")

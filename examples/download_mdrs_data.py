@@ -1,13 +1,13 @@
 import sys
 from pathlib import Path
 
-# Add the current directory to sys.path to allow imports from src
-current_dir = Path(__file__).parent
-if str(current_dir) not in sys.path:
-    sys.path.append(str(current_dir))
+# Add the project root to sys.path to allow imports from src
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
-from src.pathfinder.resources import st_o
-from src.pathfinder.loader import parse_file_list, generate_links, fetch_all_xmls, find_candidates
+from src.terrain_navigate.resources import st_o
+from src.terrain_navigate.loader import parse_file_list, generate_links, fetch_all_xmls, find_candidates
 
 def main():
     print("Parsing file list...")
