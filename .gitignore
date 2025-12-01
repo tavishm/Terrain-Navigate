@@ -1,29 +1,10 @@
-# Python
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.so
-*.dll
-*.egg-info/
-.venv/
-.env/
-
-# VS Code
-.vscode/
-
-# Build
-build/
+*.pyc
+*.ipynb_checkpoints/
+.pytest_cache/
+.env
+.venv
 dist/
-
-# LaTeX
-*.aux
-*.fdb_latexmk
-*.fls
-*.log
-*.synctex.gz
-
-# Data
-/data/
-*.laz
-*.las
+build/
+*.egg-info/
+examples/data/
