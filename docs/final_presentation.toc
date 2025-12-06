@@ -1,0 +1,6 @@
+\beamer@sectionintoc {1}{Idea \& Motivation}{3}{0}{1}
+\beamer@sectionintoc {2}{Cost Functions}{5}{0}{2}
+\beamer@sectionintoc {3}{Voxelization \& Grid Searching}{7}{0}{3}
+\beamer@sectionintoc {4}{Visualizations \& Demo}{8}{0}{4}
+\beamer@sectionintoc {5}{Integration}{9}{0}{5}
+\beamer@sectionintoc {6}{Flexibility \& Usage}{11}{0}{6}

@@ -1,0 +1,213 @@
+\documentclass[11pt]{beamer}
+%\usetheme{Madrid}
+%\usecolortheme{seagull}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Code listing style
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Presentation metadata
+\title[Terrain-Navigate]{Terrain-Navigate: 3D Pathfinding Library}
+\subtitle{Flexible Navigation for Robots in Complex Environments}
+\author{Tavish Mankash}
+\institute{Plaksha University}
+\date{December 6, 2025}
+
+\begin{document}
+
+% Title slide
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% Outline
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+% 1. Idea & Motivation
+\section{Idea \& Motivation}
+\begin{frame}{Idea \& Motivation}
+    \begin{itemize}
+        \item \textbf{Problem:} To make a simple, few-line Python library for 3D path-finding, particularly focussed on robots.
+        \item \textbf{Goal:} Build a lightweight, modular Python library for 3D A* pathfinding.
+        \item \textbf{Key Features:}
+            \begin{itemize}
+                \item Custom cost functions (slope, energy, roughness) useful for robots.
+                \item Easy integration with point cloud data (LAS/LAZ) and 3D meshes.
+                \item "Plug-and-play" architecture for environments and algorithms.
+            \end{itemize}
+        \item \textbf{Why?} Enable rapid prototyping for robots in unstructured environments (like MDRS).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{A* Search Fundamentals}
+    \begin{itemize}
+        \item Path search for rovers moving in an open field is computationally difficult.
+        \item \textbf{A* Algorithm:} An informed search algorithm that efficiently finds the shortest path between nodes in a graph.
+        \item \textbf{Key Idea:} Combines the cost to reach a node with an estimate of the cost to reach the goal.
+        \item \textbf{Formula:} $f(n) = g(n) + h(n)$
+            \begin{itemize}
+                \item $f(n)$: Total estimated cost from start to goal through node $n$.
+                \item $g(n)$: Actual cost from the start node to node $n$.
+                \item $h(n)$: Heuristic estimate of the cost from node $n$ to the goal node.
+            \end{itemize}
+        \item \textbf{Intuition:} $g(n)$ tells us how far we've come, $h(n)$ tells us how far we *think* we still need to go. A* tries to minimize their sum.
+    \end{itemize}
+\end{frame}
+
+% 2. Cost Functions
+\section{Cost Functions}
+
+\begin{frame}{Cost Functions}
+\begin{itemize}
+    \item \textbf{Approach 1}: 
+        \[h(n) = \sum_{i=start}^{n} \left(\frac{\Delta z_i}{\Delta r_i}\right)^n\]
+    \item \textbf{Approach 2}: 
+        \[h(n) = \sum_{i=start}^{n} \left(\frac{\Delta z_i}{\Delta r_i}\right)^{n_1} + \left(\frac{\Delta z_{i}}{\Delta r_{pi}}\right)^{n_2}\]
+
+    \item \textbf{Approach 3}: 
+        \[h(n) = \sum_{i=start}^{n} (\alpha_1 \cdot \frac{\Delta z_i}{\Delta r_i} + \beta_1)^{n_1} + (\alpha_2 \cdot \frac{\Delta z_{i}}{\Delta r_{pi}} + \beta_2)^{n_2}\]
+    \item \textbf{Approach 4}: 
+        \[h(n) = \sum_{i=start}^{n} \Delta r \cdot (\Delta z)^{n_1} + \alpha \cdot \Delta r_p \cdot (\Delta z)^{n_2}\]
+\end{itemize}
+\end{frame} 
+
+\begin{frame}{Cost Functions}
+    \begin{itemize}
+        \item \textbf{Implemented Costs:}
+            \begin{itemize}
+                \item \texttt{EuclideanCost}: Standard shortest path.
+                \item \texttt{PowerCost}: Penalizes vertical movement ($Cost = Dist \times (1 + \alpha \cdot slope^n)$).
+                \item \texttt{EnergyBasedCost}: Physics-based (Rowe \& Ross, 2000) considering mass, gravity, friction.
+                \item \texttt{TerrainTraversabilityCost}: Composite metric (slope, elevation).
+            \end{itemize}
+        \item \textbf{Flexibility:} Users can define custom cost classes by inheriting from \texttt{CostFunction}, which is an ABC abstract class. (Show example)
+    \end{itemize}
+\end{frame}
+
+% 3. Voxelization & Grid Searching
+\section{Voxelization \& Grid Searching}
+\begin{frame}{From Point Clouds to Grids}
+    \begin{itemize}
+        \item \textbf{Challenge:} Raw point clouds (LAS/LAZ) are very difficult to search in.
+        \item \textbf{Solution:} Voxelization.
+        \item \textbf{Process:}
+            \begin{enumerate}
+                \item Read data using \texttt{laspy}.
+                \item Determine bounding box and resolution (e.g., 0.02m grid).
+                \item Search for points, map points to grid cells, average out points in case of low resolution.
+                \item Fill holes to ensure continuity.
+            \end{enumerate}
+        \item \textbf{Libraries Explored:} \texttt{laspy} (chosen for speed/simplicity), \texttt{open3d} (explored but heavier).
+    \end{itemize}
+\end{frame}
+
+% 4. Visualizations - Demo
+\section{Visualizations \& Demo}
+\begin{frame}{Visualizations \& Demo}
+    
+\end{frame}
+
+% 5. Integration - MDRS
+\section{Integration}
+\begin{frame}{Integration: The MDRS Dataset Effort}
+    \begin{itemize}
+        \item \textbf{Context:} Mars Desert Research Station (MDRS) in Utah. Analog environment for Mars missions.
+        \item \textbf{Data Source:} USGS Lidar Point Cloud (UT). High-fidelity terrain data.
+        \item \textbf{Challenge:} Finding the *exact* patch of land corresponding to MDRS from terabytes of US data.
+        \item \textbf{Solution - Data Pipeline:}
+            \begin{enumerate}
+                \item \textbf{Metadata Parsing:} Parsed thousands of XML metadata files from USGS repository.
+                \item \textbf{Geospatial Filtering:} Filtered files based on MDRS latitude/longitude bounding box.
+                \item \textbf{Candidate Selection:} Identified specific LAS files covering the station area.
+            \end{enumerate}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Integration: Processing Workflow}
+    \begin{itemize}
+        \item \textbf{From Raw Data to Pathfinding:}
+            \begin{itemize}
+                \item \textbf{Input:} Raw .las/.laz point cloud files (millions of points).
+                \item \textbf{Processing (\texttt{preprocess\_data.py}):}
+                    \begin{itemize}
+                        \item Voxelization: Mapping 3D points to a 2D grid.
+                        \item Grouped Point Clouds: Initial approach to group point clouds.
+                        \item Hole Filling: Handling missing lidar returns.
+                    \end{itemize}
+                \item \textbf{Output:} \texttt{processed\_map.npy} - A clean, navigable heightmap.
+            \end{itemize}
+        \item \textbf{Result:} We can now run A* with physics-based costs on *real* Martian analog terrain, not just synthetic noise.
+    \end{itemize}
+\end{frame}
+
+% 6. Flexibility / Tutorial
+\section{Flexibility \& Usage}
+\begin{frame}[fragile]{Quick Tutorial: How to Use}
+    \begin{lstlisting}[language=Python]
+from terrain_navigate import AStar, GridEnvironment, PowerCost
+import numpy as np
+
+# 1. Load your map (numpy array)
+terrain_map = np.load("map.npy")
+
+# 2. Setup Environment
+env = GridEnvironment(Z=terrain_map, resolution=1.0)
+# Supports Point Clouds and Grouped Point Clouds (Explain)
+
+# 3. Define Cost Function
+cost_fn = PowerCost(n=2.0, alpha=10.0)
+
+# 4. Find Path
+astar = AStar()
+path, cost = astar.find_path(start_node, goal_node, env, cost_fn)
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}{Future Work}
+    \begin{itemize}
+        \item \textbf{Optimization:} Implement Jump Point Search (JPS), Theta* or D*.
+        \item \textbf{Dynamic Costs:} Time-varying costs
+        \item \textbf{Environment:} Support higher dimensional information about environment such as soil conditions, etc to improve cost functions used.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Thank You}
+    \centering
+    \Huge Questions?
+\end{frame}
+
+\end{document}

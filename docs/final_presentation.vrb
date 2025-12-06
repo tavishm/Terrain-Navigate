@@ -1,0 +1,19 @@
+\frametitle{Quick Tutorial: How to Use}
+\begin{lstlisting}[language=Python]
+from terrain_navigate import AStar, GridEnvironment, PowerCost
+import numpy as np
+
+# 1. Load your map (numpy array)
+terrain_map = np.load("map.npy")
+
+# 2. Setup Environment
+env = GridEnvironment(Z=terrain_map, resolution=1.0)
+# Supports Point Clouds and Grouped Point Clouds (Explain)
+
+# 3. Define Cost Function
+cost_fn = PowerCost(n=2.0, alpha=10.0)
+
+# 4. Find Path
+astar = AStar()
+path, cost = astar.find_path(start_node, goal_node, env, cost_fn)
+    \end{lstlisting}

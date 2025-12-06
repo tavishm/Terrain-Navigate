@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Callable, Optional
 from .base import CostFunction
 
 class EuclideanCost(CostFunction):
@@ -187,3 +188,183 @@ class ApproachFourCost(CostFunction):
 
     def heuristic(self, node: np.ndarray, goal: np.ndarray) -> float:
         return float(np.linalg.norm(node - goal))
+
+
+class EnergyBasedCost(CostFunction):
+    """
+    Implements the Rowe & Ross (2000) style energy model.
+    Cost of a segment with length s and slope phi is:
+        E = m * g * (mu * cos(phi) + sin(phi)) * s
+    where mu captures rolling friction. Uphill moves cost more, downhill moves
+    are clamped to a small positive cost to avoid negative edge weights.
+    """
+
+    def __init__(
+        self,
+        mass: float = 50.0,
+        gravity: float = 9.81,
+        friction_coeff: float = 0.6,
+        min_cost: float = 1e-6,
+    ):
+        self.mass = mass
+        self.gravity = gravity
+        self.friction_coeff = friction_coeff
+        self.min_cost = min_cost
+
+    def calculate(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        diff = node_b - node_a
+        segment_length = float(np.linalg.norm(diff))
+        if segment_length < 1e-9:
+            return 0.0
+
+        horizontal = float(np.linalg.norm(diff[:2])) if diff.shape[0] >= 2 else 0.0
+        vertical = float(diff[2]) if diff.shape[0] > 2 else 0.0
+
+        cos_phi = horizontal / segment_length if segment_length > 0 else 0.0
+        sin_phi = vertical / segment_length if segment_length > 0 else 0.0
+
+        energy = self.mass * self.gravity * (
+            (self.friction_coeff * cos_phi) + sin_phi
+        ) * segment_length
+
+        return max(self.min_cost, energy)
+
+    def heuristic(self, node: np.ndarray, goal: np.ndarray) -> float:
+        # Conservative heuristic keeps A* admissible even when slopes are unknown.
+        return float(np.linalg.norm(node - goal))
+
+
+MetricFn = Callable[[np.ndarray, np.ndarray], float]
+
+
+class TerrainTraversabilityCost(CostFunction):
+    """
+    Liu et al. (2024) inspired composite terrain cost:
+        cost = omega_1 * d(n') + omega_2 * (w_s*f_s + w_e*f_e + w_r*f_r)
+    Default metric functions approximate slope/elevation using the segment
+    geometry, but custom callables can be injected for richer terrain data.
+    """
+
+    def __init__(
+        self,
+        omega_distance: float = 1.0,
+        omega_slope: float = 1.0,
+        omega_elevation: float = 1.0,
+        omega_roughness: float = 1.0,
+        slope_fn: Optional[MetricFn] = None,
+        elevation_fn: Optional[MetricFn] = None,
+        roughness_fn: Optional[MetricFn] = None,
+        epsilon: float = 1e-6,
+    ):
+        self.omega_distance = omega_distance
+        self.omega_slope = omega_slope
+        self.omega_elevation = omega_elevation
+        self.omega_roughness = omega_roughness
+        self.slope_fn = slope_fn or self._default_slope
+        self.elevation_fn = elevation_fn or self._default_elevation
+        self.roughness_fn = roughness_fn or self._default_roughness
+        self.epsilon = epsilon
+
+    def _planar_distance(self, vector: np.ndarray) -> float:
+        if vector.size < 2:
+            return 0.0
+        return float(np.linalg.norm(vector[:2]))
+
+    def _vertical_delta(self, vector: np.ndarray) -> float:
+        if vector.size < 3:
+            return 0.0
+        return float(vector[2])
+
+    def _default_slope(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        diff = node_b - node_a
+        horizontal = self._planar_distance(diff)
+        vertical = abs(self._vertical_delta(diff))
+        return vertical / max(horizontal, self.epsilon)
+
+    def _default_elevation(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        diff = node_b - node_a
+        return abs(self._vertical_delta(diff))
+
+    def _default_roughness(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        _ = (node_a, node_b)
+        return 0.0
+
+    def calculate(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        diff = node_b - node_a
+        planar = self._planar_distance(diff)
+
+        slope_cost = max(0.0, self.slope_fn(node_a, node_b))
+        elevation_cost = max(0.0, self.elevation_fn(node_a, node_b))
+        roughness_cost = max(0.0, self.roughness_fn(node_a, node_b))
+
+        terrain_penalty = (
+            self.omega_slope * slope_cost
+            + self.omega_elevation * elevation_cost
+            + self.omega_roughness * roughness_cost
+        )
+
+        return (self.omega_distance * planar) + terrain_penalty
+
+    def heuristic(self, node: np.ndarray, goal: np.ndarray) -> float:
+        diff = goal - node
+        planar = self._planar_distance(diff)
+        return self.omega_distance * planar
+
+
+class CompositeDistanceElevationSteeringCost(CostFunction):
+    """
+    Implements Jiang et al. (2024) style composite edge cost:
+        C = K1 * s + K2 * |Δz| + K3 * |Δheading|
+    Heading differences are derived from an explicit heading dimension when
+    available; otherwise the steering penalty defaults to zero.
+    """
+
+    def __init__(
+        self,
+        k1: float = 1.0,
+        k2: float = 1.0,
+        k3: float = 1.0,
+        heading_index: Optional[int] = None,
+    ):
+        self.k1 = k1
+        self.k2 = k2
+        self.k3 = k3
+        self.heading_index = heading_index
+
+    def _segment_length(self, diff: np.ndarray) -> float:
+        if diff.size >= 3:
+            return float(np.linalg.norm(diff[:3]))
+        return float(np.linalg.norm(diff))
+
+    def _vertical_change(self, diff: np.ndarray) -> float:
+        if diff.size < 3:
+            return 0.0
+        return abs(float(diff[2]))
+
+    def _heading_change(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        idx = self.heading_index
+        if idx is None and min(node_a.size, node_b.size) > 3:
+            idx = 3
+
+        if idx is not None and idx < min(node_a.size, node_b.size):
+            delta = float(node_b[idx] - node_a[idx])
+            wrapped = (delta + np.pi) % (2 * np.pi) - np.pi
+            return abs(wrapped)
+
+        return 0.0
+
+    def calculate(self, node_a: np.ndarray, node_b: np.ndarray) -> float:
+        diff = node_b - node_a
+        segment_length = self._segment_length(diff)
+        vertical_change = self._vertical_change(diff)
+        heading_change = self._heading_change(node_a, node_b)
+
+        return (
+            self.k1 * segment_length
+            + self.k2 * vertical_change
+            + self.k3 * heading_change
+        )
+
+    def heuristic(self, node: np.ndarray, goal: np.ndarray) -> float:
+        diff = goal - node
+        return self.k1 * self._segment_length(diff)
